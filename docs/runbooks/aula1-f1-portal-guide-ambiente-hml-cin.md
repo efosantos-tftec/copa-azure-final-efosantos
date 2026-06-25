@@ -239,6 +239,40 @@ A Function precisa de um Storage para estado interno (triggers, locks, logs do h
 5. **Monitoring:** Application Insights = **Yes** → `<seu-appi>`.
 6. **`Review + create`** → **`Create`**.
 
+> **Alternativa — criar a Function App via Cloud Shell (PowerShell).** Se preferir CLI ao Portal, abra o **Cloud Shell** no modo **PowerShell** e rode o bloco abaixo (preencha as suas variáveis). Pré-requisito: o **App Service plan** (Fase 3), o **Storage** (Fase 5) e o **Application Insights** (Fase 6) já criados.
+> ```powershell
+> # Preencha com os SEUS nomes (mesmos da tabela de convenção)
+> $rg      = "<seu-rg>"
+> $plano   = "<seu-plano>"     # App Service plan B1 Windows (Fase 3)
+> $storage = "<seu-storage>"   # Storage Account (Fase 5)
+> $appi    = "<seu-appi>"      # Application Insights (Fase 6)
+> $func    = "<seu-func>"      # nome global único da Function App
+>
+> # Cria a Function App no plano B1 (Windows, .NET 8 isolated, Functions v4)
+> az functionapp create `
+>   --resource-group $rg `
+>   --name $func `
+>   --plan $plano `
+>   --storage-account $storage `
+>   --app-insights $appi `
+>   --runtime dotnet-isolated `
+>   --runtime-version 8 `
+>   --functions-version 4 `
+>   --os-type Windows
+>
+> # 7.3 — Always On (necessário p/ o trigger do Service Bus em plano dedicado)
+> az functionapp config set --resource-group $rg --name $func --always-on true
+>
+> # 7.4 — SCM Basic Auth On (necessário p/ o deploy via Actions / publish profile)
+> az resource update `
+>   --resource-group $rg `
+>   --namespace Microsoft.Web `
+>   --resource-type basicPublishingCredentialsPolicies `
+>   --name scm --parent "sites/$func" `
+>   --set properties.allow=true
+> ```
+> Esse bloco cobre, de uma vez, a criação (7.1) **e** as configurações de **Always On** (7.3) e **SCM basic-auth** (7.4). Se for **Opção A (SQL privado)**, ainda faça a VNet integration da 7.2 (abaixo).
+
 ### 7.2 (Somente Opção A — SQL privado) Ligar a Function na VNet
 
 > Pule esta etapa se você escolheu o **SQL público (Opção B)**.
