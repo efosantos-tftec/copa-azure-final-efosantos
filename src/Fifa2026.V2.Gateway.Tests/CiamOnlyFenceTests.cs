@@ -123,7 +123,7 @@ public sealed class CiamOnlyFenceTests : IClassFixture<GatewayTestFixture>
         var response = await client.GetAsync("/me");
 
         // B-1 (code review 2026-07-01) — 403 EXATO (não "401 OU 403"): o admin AUTENTICA (o
-        // selector roteia o token workforce ao AdminScheme e o merger com a DefaultPolicy o
+        // selector roteia o token workforce ao AdminScheme e o merge com a DefaultPolicy o
         // aprova no RequireAuthenticatedUser), mas a assertion de ISSUER do CiamOnly o barra →
         // 403 (autenticado-mas-não-autorizado), NUNCA 401. Fixar o status prova que foi o FENCE
         // que barrou — não uma falha de autenticação genérica.
